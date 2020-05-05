@@ -4,7 +4,7 @@
 		<one-of>
 			<!-- pattern: 8 positions [A-Z]{2}[0-9]{6} -->
 			<item>
-				<ruleref uri="#letters" />
+				<ruleref uri="#firstletters" />
 				<ruleref uri="#letters" />
 				<ruleref uri="#numbers" />
 				<ruleref uri="#numbers" />
@@ -13,6 +13,13 @@
 				<ruleref uri="#numbers" />
 				<ruleref uri="#numbers" />
 			</item>
+		</one-of>
+	</rule>
+	<rule id="firstletters">
+		<one-of>
+			<item>K.</item>
+			<item>Q.</item>
+			<item>T.</item>
 		</one-of>
 	</rule>
 	<rule id="letters">
