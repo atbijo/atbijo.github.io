@@ -2,10 +2,12 @@
 	xmlns="http://www.w3.org/2001/06/grammar">
 	<rule id="patterns">
 		<one-of>
-			<!-- pattern: 6 positions [A-Z]{2}[0-9]{4} -->
+			<!-- pattern: 8 positions [A-Z]{2}[0-9]{6} -->
 			<item>
 				<ruleref uri="#letters" />
 				<ruleref uri="#letters" />
+				<ruleref uri="#numbers" />
+				<ruleref uri="#numbers" />
 				<ruleref uri="#numbers" />
 				<ruleref uri="#numbers" />
 				<ruleref uri="#numbers" />
