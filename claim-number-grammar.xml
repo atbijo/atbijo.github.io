@@ -2,7 +2,7 @@
 	xmlns="http://www.w3.org/2001/06/grammar">
 	<rule id="patterns">
 		<one-of>
-			<!-- pattern: 8 positions [A-Z]{2}[0-9]{6} -->
+			<!-- pattern: 8 positions [KQT][A-Z][0-9]{6} -->
 			<item>
 				<ruleref uri="#firstletters" />
 				<ruleref uri="#letters" />
