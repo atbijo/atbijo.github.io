@@ -155,7 +155,7 @@ In this lab, we use synchronous HTTP interface using curl.
 
 The following sections show basic transcription requests, with no optional input or output parameters.
 
-Download the audio file and store it in your work directory
+Download the audio file and store it in your work directory<br/>
 <https://atbijo.github.io/audio-file.flac/>
 
 > The VMs cannot play the audio files. To listen to them, you can download the file to your local machine from the same GitHub link above.
@@ -348,7 +348,298 @@ As you can see, the domain terms such as Nzeckster, key escutcheon or Nzeckster 
 
 You can see an interactive demo of Speech to Text customization, with side by side comparison of base model transcription and custom model transcription at below link
 
-https://www.ibm.com/demos/live/speech-to-text/self-service
+<https://www.ibm.com/demos/live/speech-to-text/self-service/>
 
 This concludes the language model customization exercise.
+
+# 4 Exercise B: Grammars
+
+This exercise will show you how audio files containing specific formatted data can be transcribed with higher accuracy with use of grammar definition.
+
+For example, when you need to recognize specific words or phrases, such as yes or no, individual letters or numbers, or a list of names, using grammars can be more effective than examining alternative words and transcripts. Moreover, by limiting the search space for valid strings, the service can deliver results faster and more accurately.
+
+Grammar support is provided in Speech to Text service based on Speech Recognition Grammar Specification: <https://www.w3.org/TR/speech-grammar//>
+
+The service currently does not support all features of the specification. To know more about what's not supported, see below page
+
+<https://cloud.ibm.com/docs/services/speech-to-text?topic=speech-to-text-grammars#grammarSpecification/>
+
+Grammar is supported in both Augmented Backus-Naur Form (ABNF) and XML Form.
+
+For example, a yes or no grammar will look like below in ABNF
+
+```
+# ABNF 1.0 ISO-8859-1;
+language en-US;
+mode voice;
+root $yesno;
+
+$yesno = yes | no ;
+```
+
+In XML Form, it will look like below
+
+```xml
+<grammar version="1.0" xml:lang="en-US" root="yesno"
+	xmlns="http://www.w3.org/2001/06/grammar">
+	<rule id="yesno">
+		<one-of>
+			<item>yes</item>
+			<item>no</item>
+		</one-of>
+	</rule>
+</grammar>
+```
+
+In this lab, we use XML Form.
+
+## 4.1 Defining Grammar
+
+Let's imagine a situation when user tells a claim number over voice. The claim number contains letters and numbers. Many of the letters or numbers can sound like common words, some listed below
+
+T - tea
+B - bee, be
+C - see, sea
+2 - to, too
+K - okay
+S - yes
+
+Many of these are challenging voices to transcribe correctly if left to open language speech models.
+
+However, it can be simpler if we use grammar to limit the search space. If the search is limited to just letters and numbers instead of all the dictionary words, many of these confusion matrixes can be eliminated narrowing to very few possible results from the voice, hence improving transcription accuracy.
+
+Claim number could in fact be following a stricter pattern, which can further narrow the search space.
+
+In this lab, let's imagine a claim number which follow below pattern
+
+Two letters followed by six numbers. First letter should be either K, Q or T 
+
+An XML grammar definition of this pattern can be found at below URL. Download and store it in your work directory.
+<https://atbijo.github.io/claim-number-grammar.xml/>
+
+This looks similar to following. Note that the section below has trimmed the list of letters and numbers for display purposes. To see the full definition, see the claim-number-grammar.xml which you just downloaded to your work directory.
+
+```xml
+<grammar version="1.0" xml:lang="en-US" root="patterns"
+	xmlns="http://www.w3.org/2001/06/grammar">
+	<rule id="patterns">
+		<one-of>
+			<!-- pattern: 8 positions [KQT][A-Z][0-9]{6} -->
+			<item>
+				<ruleref uri="#firstletters" />
+				<ruleref uri="#letters" />
+				<ruleref uri="#numbers" />
+				<ruleref uri="#numbers" />
+				<ruleref uri="#numbers" />
+				<ruleref uri="#numbers" />
+				<ruleref uri="#numbers" />
+				<ruleref uri="#numbers" />
+			</item>
+		</one-of>
+	</rule>
+	<rule id="firstletters">
+		<one-of>
+			<item>K.</item>
+			<item>Q.</item>
+			<item>T.</item>
+		</one-of>
+	</rule>
+	<rule id="letters">
+		<one-of>
+			<item>A.</item>
+			<item>B.</item>
+			...
+			...
+			<item>Y.</item>
+			<item>Z.</item>
+		</one-of>
+	</rule>
+	<rule id="numbers">
+		<one-of>
+			<item>zero</item>
+			<item>one</item>
+			...
+			...
+			<item>eight</item>
+			<item>nine</item>
+		</one-of>
+	</rule>
+</grammar>
+```
+
+## 4.2 Adding Grammar to Custom Language Model
+
+Let's add this grammar definition to the automotive language model we created in Exercise A.
+
+Issue the following command to call the service's `/v1/customizations/{customization_id}/grammars/{grammar_name}` method to add the grammar file to custom model.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: application/srgs+xml" --data-binary @claim-number-grammar.xml "%URL%/v1/customizations/%AUTO_LM%/grammars/claimnumber"
+```
+
+Once added, you can check the status of the grammar by issuing following command
+
+```batch
+C:\Lab> curl -X GET -u apikey:%APIKEY% "%URL%/v1/customizations/%AUTO_LM%/grammars/claimnumber"
+```
+
+Response will look like this
+
+```javascript
+{
+   "out_of_vocabulary_words": 0,
+   "name": "claimnumber,
+   "status": "being_processed"
+}
+```
+
+Initial status will be `being_processed`. Wait until the status changes to `analyzed`. Reissue the command to see updated status.
+
+Now you are ready to train your custom language model.
+
+Issue the following command to call the service's `/v1/customizations/{customization_id}/train` method to initiate training of the new custom language model.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --data "{}" "%URL%/v1/customizations/%AUTO_LM%/train"
+```
+
+Once the training is initiated, you can check the status of the custom model by issuing following command.
+
+```batch
+C:\Lab> curl -X GET -u apikey:%APIKEY% "%URL%/v1/customizations/%AUTO_LM%"
+```
+
+Response will look like this
+
+```javascript
+{
+   "owner": "1a864ef2-711d-4a0a-19e2-31bf4b9bdef0",
+   "base_model_name": "en-US_BroadbandModel",
+   "customization_id": "00f1b7134-23d1-4ad2-8b0d-a1218ad69abe",
+   "dialect": "en-US",
+   "versions": ["en-US_BroadbandModel.v2020-01-16"],
+   "created": "2020-05-04T02:26:29.495Z",
+   "name": "autolm",
+   "description": "Automotive Model",
+   "progress": 0,
+   "language": "en-US",
+   "updated": "2020-05-05T17:01:20.214Z",
+   "status": "training"
+}
+```
+
+Initial status will be `training`. Wait until the status changes to `available`. Reissue the command to see updated status.
+
+Now you are ready to use new grammar.
+
+## 4.3 Transcribe without Grammar
+
+Download the audio file from below location and store it in your work directory.
+<https://atbijo.github.io/claim-number.flac/>
+
+To better appreciate this section of the lab, you may want to play the audio file claim-number.flac and listen to it.
+
+> The VMs cannot play the audio files. To listen to them, you can download the file to your local machine from the same GitHub link provided above.
+
+Issue the following command to call the service's `/v1/recognize` without any parameters. The example uses the `Content-Type` header to indicate the type of the audio, `audio/flac`. The example uses the default language model, `en-US_BroadbandModel`, for transcription.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: audio/flac" --data-binary @claim-number.flac "%URL%/v1/recognize" > claim-number.json
+```
+
+Service response in claim-number.json looks like below
+
+![claim-number.json](./images/claim-number.json.png)
+
+If you had listened to the audio, you would have noticed that the first letter spoken, actually `T`, sounds very similar to `D` and gets transcribed incorrectly as `D`.
+
+Now let's see if grammar makes a difference.
+
+## 4.4 Transcribe with Grammar
+
+We will use the same audio file claim-number.flac, which is already in your work directory.
+
+Issue the following command to call the service's `/v1/recognize`. Notice the customization id being passed with parameter `language_customization_id` and grammar name passed with parameter `grammar_name`.  The example uses the `Content-Type` header to indicate the type of the audio, `audio/flac`. The example uses the default language model, `en-US_BroadbandModel`, for transcription.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: audio/flac" --data-binary @claim-number.flac "%URL%/v1/recognize?language_customization_id=%AUTO_LM%&grammar_name=claimnumber" > claim-number-grammar.json
+```
+
+Service response in claim-number-grammar.json looks like below
+
+![claim-number-grammar.json](./images/claim-number-grammar.json.png)
+
+You can see the first letter `T` in the audio is now correctly transcribed.
+
+This concludes the Speech Grammar exercise.
+
+# 5 Appendix I - IBM Cloud Account and Speech to Text Instance
+
+If you already don’t have an IBM Cloud account, which you can use to create Standard plan instance of Speech to Text service, follow below steps
+
+## 5.1 Set up your IBM Cloud account
+
+Go to and click **Create an Account**
+
+![IBM Cloud Login Page](./images/cloud-login.png)
+
+Enter your email address, verify it, and provide your information.
+
+![IBM Cloud Create Account Form](./images/cloud-create-account-form.png)
+
+Once you have verified your email address and filled in the required fields, the **Create account** button will become active and you can click it. Within few minutes, you will receive an email that your account has been created.
+
+Open the **Welcome to IBM Cloud** email and click **Log in**
+
+When you login to IBM Cloud for the first time, you will be prompted to review IBM’s privacy policy. Proceed if you agree.
+
+## 5.2 Provision Speech to Text instance
+
+Once logged in, your landing page should look like below
+
+![IBM Cloud Dashboard](./images/cloud-dashboard.png)
+
+If you don’t already have a Standard plan Speech to Text instance, search for **speech to text** in the top search bar and click **Speech to Text** from the Catalog Results.
+
+![IBM Cloud Search](./images/cloud-search-stt.png)
+
+Speech to Text can be created with **Lite**, **Standard** and **Premium** plans. Features addressed in this lab are only available in **Standard** or higher plan. Choose a region closer to you, review the costs associated with the plan you select and click **Create**.
+
+![IBM Cloud STT Create](./images/cloud-stt-create.png)
+
+Note the API key and URL from the following start page of the service instance
+
+![IBM Cloud STT Credentials](./images/cloud-stt-cred.png)
+
+This API key and URL can be used with the curl commands to do your own customization.
+
+# 6 Appendix II - Evaluating Accuracy
+
+When you train custom models, Word Error Rate (WER) is a common measure of accuracy to determine if your custom model has improved. It’s calculated using below formula.
+
+![Word Error Rate Formula](./images/wer.png)
+
+where
+
+**S** is the number of substitutions,
+**D** is the number of deletions,
+**I** is the number of insertions,
+**C** is the number of correct words,
+**N** is the number of words in the reference (N=S+D+C)
+
+However, relying solely on WER could be counterproductive at times. For example, if you are trying to identify ID numbers, incorrect detection of a single character would make the whole ID incorrect, or if you are using the transcription with downstream services such as Watson Assistant, error in one word may not make any difference.
+
+You can read more about it here
+
+<https://medium.com/ibm-watson/why-the-overall-voicebot-solution-and-user-experience-are-more-important-than-speech-accuracy-d229bf54aede/>
+
+
+
+
+
+
+
+
+
+
 
