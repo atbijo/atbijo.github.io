@@ -132,4 +132,179 @@ C:\Lab> curl
 
 If you see the same response as in the above screenshot, you have curl installed and proceed.
 
+> In case if you don't have curl in your VM, download curl binary from following URL
+>
+> https://curl.haxx.se/windows/dl-7.70.0/curl-7.70.0-win64-mingw.zip
+>
+> Extract the zip file to your work directory and rename the folder curl-7.70.0-win64-mingw to curl, so that you have curl.exe at the path C:\Lab\curl\bin\curl.exe
+>
+> Add curl.exe to system path in your terminal
+> ```batch
+> C:\> set PATH=C:\Lab\curl\bin\;%PATH%
+> ```
+>
+> You will need to set this path in every new terminal window you open.
+>
+> Once the path is set, try `curl` command in terminal again to verify you get a response similar to what you see in above screenshot.
 
+## 2.1 Warming Up
+
+To request speech recognition with the IBM Speech to Text service, you need to provide only the audio that is to be transcribed. The service offers the same basic transcription capabilities with each of its interfaces: the WebSocket interface, the synchronous HTTP interface, and the asynchronous HTTP interface.
+
+In this lab, we use synchronous HTTP interface using curl.
+
+The following sections show basic transcription requests, with no optional input or output parameters.
+
+Download the audio file and store it in your work directory
+<https://atbijo.github.io/audio-file.flac/>
+
+> The VMs cannot play the audio files. To listen to them, you can download the file to your local machine from the same GitHub link above.
+
+Issue the following command to call the service's `/v1/recognize` method for basic transcription with no parameters. The example uses the `Content-Type` header to indicate the type of the audio, `audio/flac`. The example uses the default language model, `en-US_BroadbandModel`, for transcription
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: audio/flac" --data-binary @audio-file.flac "%URL%/v1/recognize" > warmup.json
+```
+
+Note: Remember, we have API Key and URL from instructor which we have set as environment variables APIKEY and URL.
+
+Open the output file warmup.json in Notepad. The transcription result look like the following
+
+![warmup.json](./images/warmup.json.png)
+
+Transcript text can be seen against the name "transcript". You can also see "confidence" value of this transcription.
+
+For a full list of parameters and additional details you can get with the transcription, such as speaker labels, word alternatives etc., see the API specification at
+
+<https://cloud.ibm.com/apidocs/speech-to-text#recognize-audio/>
+
+# 3 Exercise A: Language Model Customization
+
+This exercise will show you how audio files containing domain terminology can be transcribed with higher accuracy with use of language model customization.
+
+To better appreciate this section of the lab, you may want to play the audio files in respective sections and listen to it.
+
+> The VMs cannot play the audio files. To listen to them, you can download the file to your local machine from the GitHub links provided in respective sections.
+
+## 3.1 Getting the Files
+
+Download the following audio files and store it in your work directory
+
+<https://atbijo.github.io/automotive.flac/><br/>
+<https://atbijo.github.io/automotive.wav/>
+
+Download the language model customization file and store it in your work directory
+
+<https://atbijo.github.io/automotive-lm.txt/>
+
+## 3.2 Transcribe without Language Model Customization
+
+Issue the following command to call the service's `/v1/recognize` method for basic transcription with no parameters. The example uses the `Content-Type` header to indicate the type of the audio, `audio/flac`. The example uses the default language model, `en-US_BroadbandModel`, for transcription
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: audio/flac" --data-binary @automotive.flac "%URL%/v1/recognize" > automotive-flac.json
+```
+
+Open the output file automotive-flac.json in Notepad. The transcription result look like the following
+
+![automotive-flac.json](./images/automotive-flac.json.png)
+
+If you had listened to the audio, you would have noticed the speakers mentioning certain domain terms such as **Nzeckster**, **key escutcheon**, **Nzeckster Countlone** etc. As you can see in the transcript, some of these domain terms did not get transcribed correctly.
+
+Now, let's try the same audio in a different audio format. You have the file automotive.wav in your work directory, which is the same conversation in a different audio format.
+
+You can issue the following command to call the same API method with the audio file automotive.wav. The `Content-Type` header now indicates the type of the audio as `audio/wav`.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: audio/wav" --data-binary @automotive.wav "%URL%/v1/recognize" > automotive-wav.json
+```
+
+Output in automotive-wav.json will be similar to the previous output seen in automotive-flac.json.
+
+## 3.3 Create Language Model Corpus
+
+Language model corpus is a text file containing common utterances in your domain that you expect your users would say, the audio for which is intended to be transcribed with your Speech to Text instance. You can extrapolate the utterances with common variations. You can also repeat the utterances to improve the accuracy.
+
+An example language model will look like this.
+
+```
+calling Nzeckster Motor Company
+calling Nzeckster Motor Company
+is key escutcheon covered by warranty
+do you cover key escutcheon in manufacturer warranty
+is crankshaft position sensor covered in warranty
+does my warranty cover crankshaft position sensor
+I use a Nzeckster Countlone turbo sports model
+mine is a Nzeckster Countlone
+it's a Nzeckster Countlone
+```
+
+For this lab, the corpus is provided to you in the automotive-lm.txt file that you have already downloaded and is available in your work directory.
+
+Follow below steps to create and train a language model.
+
+Issue the following command to call the service's /v1/customizations method to create a new language model in your Speech to Text instance. You need to provide a name for your new model and also need to provide the name of the base language model your custom model is based on. You can also provide an optional description.
+
+For a full list of supported language models, visit<br/>
+<https://cloud.ibm.com/docs/services/speech-to-text?topic=speech-to-text-models#modelsList/>
+
+In this lab, we are creating a custom model against US English Broadband base model.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: application/json" --data "{\"name\": \"autolm\", \"base_model_name\": \"en-US_BroadbandModel\", \"description\": \"Automotive Model\"}" "%URL%/v1/customizations" > automotive-customization-id.json
+```
+
+The service creates a new language customization id and it would be stored in the file automotive-customization-id.json in your work directory.
+
+View the content of automotive-customization-id.json by opening it in Notepad, which looks similar to below
+
+```
+{"customization_id": "00f1b7134-23d1-4ad2-8b0d-a1218ad69abe"}
+```
+
+You will use the value against name `customization_id` in following commands. So please note that down. For convenience, you can set that an environment variable as below. Following sections in this lab uses this environment variable in commands. If you open a new terminal window, you will need to set them again in the new window.
+
+```batch
+C:\Lab> set AUTO_LM=[Your Customization Id without Double Quotes]
+```
+
+Now you can add corpus to your custom language model you just created
+
+Issue the following command to call the service's `/v1/customizations/{customization_id}/corpora/{corpus_name}` method to add the corpus to the new custom language model.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --data-binary "@automotive-lm.txt" "%URL%/v1/customizations/%AUTO_LM%/corpora/autocorpus"
+```
+
+Once added, you can check the status of the corpus by issuing following command
+
+```batch
+C:\Lab> curl -X GET -u apikey:%APIKEY% "%URL%/v1/customizations/%AUTO_LM%/corpora/autocorpus"
+```
+
+Response will look like this
+
+```javascript
+{
+   "out_of_vocabulary_words": 2,
+   "total_words": 53,
+   "name": "autocorpus,
+   "status": "being_processed"
+}
+```
+
+Initial status will be `being_processed`. Wait until the status changes to `analyzed`. Reissue the command to see updated status.
+
+Now you are ready to train your custom language model.
+
+Issue the following command to call the service's `/v1/customizations/{customization_id}/train` method to initiate training of the new custom language model.
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --data "{}" "%URL%/v1/customizations/%AUTO_LM%/train"
+```
+
+Once the training is initiated, you can check the status of the custom model by issuing following command.
+
+```batch
+C:\Lab> curl -X GET -u apikey:%APIKEY% "%URL%/v1/customizations/%AUTO_LM%"
+```
