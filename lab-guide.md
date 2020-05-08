@@ -288,7 +288,7 @@ Response will look like this
 {
    "out_of_vocabulary_words": 2,
    "total_words": 53,
-   "name": "autocorpus,
+   "name": "autocorpus",
    "status": "being_processed"
 }
 ```
