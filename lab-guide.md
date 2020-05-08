@@ -621,10 +621,10 @@ When you train custom models, Word Error Rate (WER) is a common measure of accur
 
 where
 
-**S** is the number of substitutions,
-**D** is the number of deletions,
-**I** is the number of insertions,
-**C** is the number of correct words,
+**S** is the number of substitutions,<br/>
+**D** is the number of deletions,<br/>
+**I** is the number of insertions,<br/>
+**C** is the number of correct words,<br/>
 **N** is the number of words in the reference (N=S+D+C)
 
 However, relying solely on WER could be counterproductive at times. For example, if you are trying to identify ID numbers, incorrect detection of a single character would make the whole ID incorrect, or if you are using the transcription with downstream services such as Watson Assistant, error in one word may not make any difference.
@@ -632,14 +632,3 @@ However, relying solely on WER could be counterproductive at times. For example,
 You can read more about it here
 
 <https://medium.com/ibm-watson/why-the-overall-voicebot-solution-and-user-experience-are-more-important-than-speech-accuracy-d229bf54aede/>
-
-
-
-
-
-
-
-
-
-
-
