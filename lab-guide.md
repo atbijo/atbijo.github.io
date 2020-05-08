@@ -631,4 +631,4 @@ However, relying solely on WER could be counterproductive at times. For example,
 
 You can read more about it here
 
-<https://medium.com/ibm-watson/why-the-overall-voicebot-solution-and-user-experience-are-more-important-than-speech-accuracy-d229bf54aede/>
+[Why The Overall Voicebot Solution And User Experience Are More Important Than Speech Accuracy](https://medium.com/ibm-watson/why-the-overall-voicebot-solution-and-user-experience-are-more-important-than-speech-accuracy-d229bf54aede)
