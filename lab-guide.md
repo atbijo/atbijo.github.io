@@ -1,6 +1,5 @@
 # Lab Center – Hands-On Lab 
-## Session 6117
-## Hands-on Speech to Text Customization and Speech Grammar
+## Session 6117<br/>Hands-on Speech to Text Customization and Speech Grammar
 
 
 **Abhishek Shrivastava**<br/>
