@@ -3,8 +3,8 @@
 ## Hands-on Speech to Text Customization and Speech Grammar
 
 
-**Abhishek Shrivastava**
-Digital Technical Engagement - Data Science and AI
+**Abhishek Shrivastava**<br/>
+Digital Technical Engagement - Data Science and AI<br/>
 abhia@ibm.com
 
 **Bijo Thomas**
