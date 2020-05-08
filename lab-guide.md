@@ -308,3 +308,47 @@ Once the training is initiated, you can check the status of the custom model by 
 ```batch
 C:\Lab> curl -X GET -u apikey:%APIKEY% "%URL%/v1/customizations/%AUTO_LM%"
 ```
+
+The response will look like this
+
+```javascript
+{
+   "owner": "1a864ef2-711d-4a0a-19e2-31bf4b9bdef0",
+   "base_model_name": "en-US_BroadbandModel",
+   "customization_id": "00f1b7134-23d1-4ad2-8b0d-a1218ad69abe",
+   "dialect": "en-US",
+   "versions": ["en-US_BroadbandModel.v2020-01-16"],
+   "created": "2020-05-04T02:26:29.495Z",
+   "name": "autolm",
+   "description": "Automotive Model",
+   "progress": 0,
+   "language": "en-US",
+   "updated": "2020-05-05T17:01:20.214Z",
+   "status": "training"
+}
+```
+
+Initial status will be `training`. Wait until the status changes to `available`. Reissue the command to see updated status.
+
+Now you are ready to use your custom language model.
+
+## 3.4 Transcribe with Language Model Customization
+
+Issue the following command to call the service's `/v1/recognize`. Notice the customization id being passed with parameter `language_customization_id`. The example uses the `Content-Type` header to indicate the type of the audio, `audio/flac`. The example uses the default language model, `en-US_BroadbandModel`, for transcription
+
+```batch
+C:\Lab> curl -X POST -u apikey:%APIKEY% --header "Content-Type: audio/flac" --data-binary @automotive.flac "%URL%/v1/recognize?language_customization_id=%AUTO_LM%" > automotive-flac-customized.json
+```
+
+Open the output file automotive-flac-customized.json in Notepad. The transcription result look like the following
+
+![automotive-flac-customized.json](./images/automotive-flac-customized.json.png)
+
+As you can see, the domain terms such as Nzeckster, key escutcheon or Nzeckster Countlone are now transcribed with improved accuracy.
+
+You can see an interactive demo of Speech to Text customization, with side by side comparison of base model transcription and custom model transcription at below link
+
+https://www.ibm.com/demos/live/speech-to-text/self-service
+
+This concludes the language model customization exercise.
+
