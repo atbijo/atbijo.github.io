@@ -100,7 +100,7 @@ This lab is based on Watson Speech to Text service available in IBM public cloud
 1. API Key – Access key to use the API
 2. URL – Service location
 
-> For you to work on Speech to Text customization after this lab on your own, you will need to create your Standard plan Speech to Text instance in IBM Cloud. You will need an IBM Cloud account to create a service instance. Creating account and service instance is not within the scope of this lab, but you can refer to Appendix I of this lab guide for some quick guide on doing it.
+> For you to work on Speech to Text customization after this lab on your own, you will need to create your Standard plan Speech to Text instance in IBM Cloud. You will need an IBM Cloud account to create a service instance. Creating account and service instance is not within the scope of this lab, but you can refer to [Appendix I](#5-appendix-i---ibm-cloud-account-and-speech-to-text-instance) of this lab guide for some quick guide on doing it.
 
 This lab guide refers to the directory **C:\Lab** as your **work directory**. If you don't have that directory in your VM, please create it.
 
